@@ -101,29 +101,57 @@ export function getText(language: AppLanguage) {
   return texts[language];
 }
 
+function getVerdictEmoji(verdict: string): string {
+  const v = verdict.toUpperCase();
+  if (v === "BUY" || v === "YES" || v === "GO") return "✅";
+  if (v === "WAIT" || v === "MAYBE") return "⏳";
+  if (v === "NO" || v === "SKIP" || v === "STOP") return "🚫";
+  return "🔍";
+}
+
+function getRiskEmoji(risk: string): string {
+  const r = risk.toUpperCase();
+  if (r === "LOW") return "🟢";
+  if (r === "MEDIUM") return "🟡";
+  if (r === "HIGH") return "🔴";
+  return "⚪";
+}
+
 export function formatDecisionMessage(data: DecisionAIResult, language: AppLanguage): string {
   const t = getText(language);
 
+  const verdictEmoji = getVerdictEmoji(data.verdict);
+  const riskEmoji = getRiskEmoji(data.riskLevel);
+
   const adviceLines = (data.advice || [])
-    .slice(0, 5)
-    .map((item, i) => `${i + 1}\\. ${escapeMarkdownV2(item)}`)
+    .slice(0, 3)
+    .map((item, i) => {
+      const icons = ["💡", "📌", "🎯"];
+      return `${icons[i]} ${escapeMarkdownV2(item)}`;
+    })
     .join("\n");
 
   return [
-    `🪞 *${t.analysisTitle}*`,
+    `🪞 *${escapeMarkdownV2(t.analysisTitle)}*`,
+    `▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔`,
     "",
-    `*${t.verdict}:* ${escapeMarkdownV2(data.verdict)}`,
-    `*${t.risk}:* ${escapeMarkdownV2(data.riskLevel)}`,
-    `*${t.category}:* ${escapeMarkdownV2(data.category || "General")}`,
-    `*${t.urgency}:* ${escapeMarkdownV2(data.urgency || "MEDIUM")}`,
+    `${verdictEmoji} *${escapeMarkdownV2(t.verdict)}:* \`${escapeMarkdownV2(data.verdict)}\``,
+    `${riskEmoji} *${escapeMarkdownV2(t.risk)}:* \`${escapeMarkdownV2(data.riskLevel)}\``,
+    `📂 *${escapeMarkdownV2(t.category)}:* ${escapeMarkdownV2(data.category || "General")}`,
+    `⚡ *${escapeMarkdownV2(t.urgency)}:* ${escapeMarkdownV2(data.urgency || "MEDIUM")}`,
     "",
-    `*${t.why}*`,
+    `▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔`,
+    `🧠 *${escapeMarkdownV2(t.why)}*`,
     `${escapeMarkdownV2(data.reasoning || "")}`,
     "",
-    `*${t.behavior}*`,
+    `🔬 *${escapeMarkdownV2(t.behavior)}*`,
     `${escapeMarkdownV2(data.behaviorSignal || t.noSignal)}`,
     "",
-    `*${t.advice}*`,
-    adviceLines || escapeMarkdownV2(t.noAdvice)
+    `▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔`,
+    `📋 *${escapeMarkdownV2(t.advice)}*`,
+    adviceLines || escapeMarkdownV2(t.noAdvice),
+    "",
+    `▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔`,
+    `_WealthMirror AI_`
   ].join("\n");
 }
