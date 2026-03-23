@@ -54,14 +54,15 @@ model Insight {
 }
 
 model Usage {
-  id           String   @id @default(cuid())
-  userId       String   @unique
-  freeRequests Int      @default(15)
-  usedRequests Int      @default(0)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  freeRequests  Int      @default(15)
+  usedRequests  Int      @default(0)
+  paidRequests  Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum BotMode {
