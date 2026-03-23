@@ -53,13 +53,18 @@ async function getOrCreateUser(ctx: Context) {
 
 bot.start(async (ctx) => {
   const user = await getOrCreateUser(ctx);
-  const t = getText(user.language as AppLanguage);
+  const lang = (user.language as AppLanguage) || "UK";
 
-  await ctx.reply(
-    `👋 ${t.welcome}\n\n${t.subtitle}\n\n${t.commands}:\n` +
-      `/decision ...\n/profile\n/history\n/week\n/usage\n/lang\n/mode_soft\n/mode_strict\n/mode_brutal`,
-    buildMainKeyboard()
-  );
+  const welcomeMessages: Record<AppLanguage, string> = {
+    UK: "🪞 *Вітаю у WealthMirror AI*\n\n_Твій особистий AI\\-радник з фінансових рішень_\n\n▔▔▔▔▔▔▔▔▔▔▔▔▔▔\n\n💬 *Як користуватись:*\n\n📊 /decision — аналіз рішення\n_Приклад: /decision Купити iPhone за 1200€?_\n\n🧠 /profile — твій Financial DNA\n📜 /history — останні рішення\n📈 /week — підсумок тижня\n📊 /usage — ліміт запитів\n🌐 /lang — змінити мову\n\n▔▔▔▔▔▔▔▔▔▔▔▔▔▔\n\n🎚 *Режими відповідей:*\n🌿 /mode\\_soft — м\'який\n⚖️ /mode\\_strict — строгий\n🔥 /mode\\_brutal — жорсткий\n\n▔▔▔▔▔▔▔▔▔▔▔▔▔▔\n_15 безкоштовних аналізів_ ✨",
+    EN: "🪞 *Welcome to WealthMirror AI*\n\n_Your personal AI advisor for financial decisions_\n\n▔▔▔▔▔▔▔▔▔▔▔▔▔▔\n\n💬 *How to use:*\n\n📊 /decision — analyze a decision\n_Example: /decision Should I buy iPhone for 1200€?_\n\n🧠 /profile — your Financial DNA\n📜 /history — recent decisions\n📈 /week — weekly summary\n📊 /usage — request limit\n🌐 /lang — change language\n\n▔▔▔▔▔▔▔▔▔▔▔▔▔▔\n\n🎚 *Answer modes:*\n🌿 /mode\\_soft — gentle\n⚖️ /mode\\_strict — strict\n🔥 /mode\\_brutal — brutal\n\n▔▔▔▔▔▔▔▔▔▔▔▔▔▔\n_15 free analyses_ ✨",
+    CS: "🪞 *Vítej ve WealthMirror AI*\n\n_Tvůj osobní AI poradce pro finanční rozhodnutí_\n\n▔▔▔▔▔▔▔▔▔▔▔▔▔▔\n\n💬 *Jak používat:*\n\n📊 /decision — analýza rozhodnutí\n_Příklad: /decision Koupit iPhone za 1200€?_\n\n🧠 /profile — tvůj Financial DNA\n📜 /history — poslední rozhodnutí\n📈 /week — týdenní přehled\n📊 /usage — limit dotazů\n🌐 /lang — změnit jazyk\n\n▔▔▔▔▔▔▔▔▔▔▔▔▔▔\n\n🎚 *Režimy odpovědí:*\n🌿 /mode\\_soft — jemný\n⚖️ /mode\\_strict — přísný\n🔥 /mode\\_brutal — brutální\n\n▔▔▔▔▔▔▔▔▔▔▔▔▔▔\n_15 bezplatných analýz_ ✨"
+  };
+
+  await ctx.reply(welcomeMessages[lang], {
+    parse_mode: "MarkdownV2",
+    ...buildMainKeyboard()
+  });
 });
 
 bot.command("lang", async (ctx) => {
@@ -208,9 +213,36 @@ bot.command("decision", async (ctx) => {
     })
   ]);
 
+  const buttonLabels = {
+    UK: { history: "📜 Історія", profile: "🧠 Профіль", week: "📈 Тиждень" },
+    EN: { history: "📜 History", profile: "🧠 Profile", week: "📈 Week" },
+    CS: { history: "📜 Historie", profile: "🧠 Profil", week: "📈 Týden" }
+  };
+  const bl = buttonLabels[(user.language as AppLanguage) || "UK"];
+
   await ctx.reply(formatDecisionMessage(result, user.language as AppLanguage), {
-    parse_mode: "MarkdownV2"
+    parse_mode: "MarkdownV2",
+    ...Markup.inlineKeyboard([
+      [
+        Markup.button.callback(bl.history, "goto_history"),
+        Markup.button.callback(bl.profile, "goto_profile"),
+        Markup.button.callback(bl.week, "goto_week")
+      ]
+    ])
   });
+});
+
+bot.action("goto_history", async (ctx) => {
+  await ctx.answerCbQuery();
+  await ctx.reply("/history");
+});
+bot.action("goto_profile", async (ctx) => {
+  await ctx.answerCbQuery();
+  await ctx.reply("/profile");
+});
+bot.action("goto_week", async (ctx) => {
+  await ctx.answerCbQuery();
+  await ctx.reply("/week");
 });
 
 bot.command("profile", async (ctx) => {
@@ -268,7 +300,7 @@ bot.command("history", async (ctx) => {
     return;
   }
 
-  const lines = history.map((item, index) => {
+  const lines = history.map((item, index: number) => {
     const category = item.category || "General";
     return `${index + 1}. ${item.aiVerdict} | ${item.riskLevel} | ${category}\n${item.text}`;
   });
