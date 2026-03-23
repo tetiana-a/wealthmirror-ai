@@ -106,9 +106,17 @@ bot.command("usage", async (ctx) => {
 
   const freeRequests = user.usage?.freeRequests ?? 15;
   const usedRequests = user.usage?.usedRequests ?? 0;
-  const left = Math.max(0, freeRequests - usedRequests);
+  const paidRequests = (user.usage as any)?.paidRequests ?? 0;
+  const totalAvailable = freeRequests + paidRequests;
+  const left = Math.max(0, totalAvailable - usedRequests);
 
-  await ctx.reply(`📊 ${t.usage}\n\nUsed: ${usedRequests}/${freeRequests}\nLeft: ${left}`);
+  const usageMsg = {
+    UK: `📊 *Баланс WealthMirror*\n\n🆓 Безкоштовні: ${freeRequests}\n⭐ Платні: ${paidRequests}\n✅ Використано: ${usedRequests}\n🔢 Залишилось: *${left}*\n\n_/buy — поповнити баланс_`,
+    EN: `📊 *WealthMirror Balance*\n\n🆓 Free: ${freeRequests}\n⭐ Paid: ${paidRequests}\n✅ Used: ${usedRequests}\n🔢 Left: *${left}*\n\n_/buy — top up balance_`,
+    CS: `📊 *WealthMirror Kredit*\n\n🆓 Zdarma: ${freeRequests}\n⭐ Placené: ${paidRequests}\n✅ Použito: ${usedRequests}\n🔢 Zbývá: *${left}*\n\n_/buy — dobít kredit_`
+  };
+  const lang = (user.language as AppLanguage) || "UK";
+  await ctx.reply(usageMsg[lang], { parse_mode: "MarkdownV2" });
 });
 
 bot.command("mode_soft", async (ctx) => {
@@ -161,9 +169,20 @@ bot.command("decision", async (ctx) => {
 
   const freeRequests = user.usage?.freeRequests ?? 15;
   const usedRequests = user.usage?.usedRequests ?? 0;
+  const paidRequests = (user.usage as any)?.paidRequests ?? 0;
+  const totalAvailable = freeRequests + paidRequests;
 
-  if (usedRequests >= freeRequests) {
-    await ctx.reply(`🚫 ${t.limitReached}`);
+  if (usedRequests >= totalAvailable) {
+    const buyMsg = {
+      UK: "🚫 Ліміт вичерпано\!\n\nПоповни баланс командою /buy\n\n⭐ 50 аналізів — 100 Stars\n💎 200 аналізів — 350 Stars",
+      EN: "🚫 Limit reached\!\n\nTop up with /buy\n\n⭐ 50 analyses — 100 Stars\n💎 200 analyses — 350 Stars",
+      CS: "🚫 Limit vyčerpán\!\n\nDobij kredit příkazem /buy\n\n⭐ 50 analýz — 100 Stars\n💎 200 analýz — 350 Stars"
+    };
+    const lang = (user.language as AppLanguage) || "UK";
+    await ctx.reply(buyMsg[lang], {
+      parse_mode: "MarkdownV2",
+      ...Markup.inlineKeyboard([[Markup.button.callback("⭐ Купити запити / Buy", "buy_50")]])
+    });
     return;
   }
 
@@ -345,6 +364,111 @@ bot.command("week", async (ctx) => {
   await ctx.reply(`📈 *${escapeMarkdownV2(t.weekTitle)}*\n\n${escapeMarkdownV2(summary)}`, {
     parse_mode: "MarkdownV2"
   });
+});
+
+// ──────────────────────────────────────────
+// TELEGRAM STARS PAYMENT
+// ──────────────────────────────────────────
+
+const PACKAGES = {
+  PACK_50: { stars: 100, requests: 50, label: { UK: "50 аналізів", EN: "50 analyses", CS: "50 analýz" } },
+  PACK_200: { stars: 350, requests: 200, label: { UK: "200 аналізів", EN: "200 analyses", CS: "200 analýz" } }
+};
+
+bot.command("buy", async (ctx) => {
+  const user = await getOrCreateUser(ctx);
+  const lang = (user.language as AppLanguage) || "UK";
+
+  const titles = {
+    UK: "⭐ Поповнити баланс WealthMirror",
+    EN: "⭐ Top up WealthMirror balance",
+    CS: "⭐ Dobít kredit WealthMirror"
+  };
+
+  const descs = {
+    UK: "Обери пакет запитів для аналізу фінансових рішень",
+    EN: "Choose a package for financial decision analysis",
+    CS: "Zvol balíček pro analýzu finančních rozhodnutí"
+  };
+
+  const btnLabels = {
+    UK: [`🔹 50 аналізів — 100 ⭐`, `💎 200 аналізів — 350 ⭐`],
+    EN: [`🔹 50 analyses — 100 ⭐`, `💎 200 analyses — 350 ⭐`],
+    CS: [`🔹 50 analýz — 100 ⭐`, `💎 200 analýz — 350 ⭐`]
+  };
+
+  await ctx.reply(titles[lang], {
+    ...Markup.inlineKeyboard([
+      [Markup.button.callback(btnLabels[lang][0], "buy_50")],
+      [Markup.button.callback(btnLabels[lang][1], "buy_200")]
+    ])
+  });
+});
+
+bot.action("buy_50", async (ctx) => {
+  await ctx.answerCbQuery();
+  const user = await getOrCreateUser(ctx);
+  const lang = (user.language as AppLanguage) || "UK";
+
+  const titles = { UK: "50 аналізів WealthMirror", EN: "50 WealthMirror analyses", CS: "50 WealthMirror analýz" };
+  const descs = { UK: "Поповнення на 50 фінансових аналізів", EN: "Top up with 50 financial analyses", CS: "Dobití 50 finančních analýz" };
+
+  await ctx.telegram.sendInvoice(ctx.chat!.id, {
+    title: titles[lang],
+    description: descs[lang],
+    payload: "PACK_50",
+    provider_token: "",
+    currency: "XTR",
+    prices: [{ label: titles[lang], amount: 100 }]
+  });
+});
+
+bot.action("buy_200", async (ctx) => {
+  await ctx.answerCbQuery();
+  const user = await getOrCreateUser(ctx);
+  const lang = (user.language as AppLanguage) || "UK";
+
+  const titles = { UK: "200 аналізів WealthMirror", EN: "200 WealthMirror analyses", CS: "200 WealthMirror analýz" };
+  const descs = { UK: "Поповнення на 200 фінансових аналізів", EN: "Top up with 200 financial analyses", CS: "Dobití 200 finančních analýz" };
+
+  await ctx.telegram.sendInvoice(ctx.chat!.id, {
+    title: titles[lang],
+    description: descs[lang],
+    payload: "PACK_200",
+    provider_token: "",
+    currency: "XTR",
+    prices: [{ label: titles[lang], amount: 350 }]
+  });
+});
+
+bot.on("pre_checkout_query", async (ctx) => {
+  await ctx.answerPreCheckoutQuery(true);
+});
+
+bot.on("message", async (ctx: any) => {
+  if (!ctx.message?.successful_payment) return;
+
+  const payment = ctx.message.successful_payment;
+  const payload = payment.invoice_payload as keyof typeof PACKAGES;
+  const pkg = PACKAGES[payload];
+
+  if (!pkg) return;
+
+  const user = await getOrCreateUser(ctx);
+
+  await prisma.usage.update({
+    where: { userId: user.id },
+    data: { paidRequests: { increment: pkg.requests } }
+  });
+
+  const lang = (user.language as AppLanguage) || "UK";
+  const successMsg = {
+    UK: `✅ Оплата успішна\! Додано *${pkg.requests} аналізів* до твого балансу\.\n\n⭐ Зірки отримані: *${payment.total_amount}*`,
+    EN: `✅ Payment successful\! Added *${pkg.requests} analyses* to your balance\.\n\n⭐ Stars received: *${payment.total_amount}*`,
+    CS: `✅ Platba úspěšná\! Přidáno *${pkg.requests} analýz* na váš kredit\.\n\n⭐ Přijaté Stars: *${payment.total_amount}*`
+  };
+
+  await ctx.reply(successMsg[lang], { parse_mode: "MarkdownV2" });
 });
 
 bot.on("text", async (ctx) => {
