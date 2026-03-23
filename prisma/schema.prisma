@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id         String     @id @default(cuid())
+  telegramId String     @unique
+  username   String?
+  firstName  String?
+  language   Language   @default(UK)
+  mode       BotMode    @default(SOFT)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  decisions  Decision[]
+  insights   Insight[]
+  usage      Usage?
+}
+
+model Decision {
+  id             String   @id @default(cuid())
+  userId         String
+  text           String
+  amount         Float?
+  category       String?
+  urgency        String?
+  aiVerdict      String
+  aiReasoning    String
+  riskLevel      String
+  behaviorSignal String?
+  createdAt      DateTime @default(now())
+
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model Insight {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model Usage {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  freeRequests Int      @default(15)
+  usedRequests Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum BotMode {
+  SOFT
+  STRICT
+  BRUTAL
+}
+
+enum Language {
+  EN
+  UK
+  CS
+}
