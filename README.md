@@ -1,60 +1,178 @@
-# WealthMirror AI v3
+# 💰 WealthMirror AI
 
-Production-ready Telegram AI bot for financial decision analysis.
+Production-ready AI financial assistant built with **TypeScript, Telegram Bot API, OpenAI, PostgreSQL (Prisma), and AI Agents**.
 
-## Features
+WealthMirror AI helps users make smarter financial decisions using AI-powered analysis, personalized financial profiles, and conversational guidance.
 
-- /decision — analyze a spending decision
-- /profile — Financial DNA profile
-- /history — recent decisions
-- /week — weekly summary
-- /usage — usage counter
-- /lang — EN / UK / CS
-- /mode_soft, /mode_strict, /mode_brutal — answer tone
-- Local dev with polling
-- Production deploy with Telegram webhook
+---
 
-## Stack
+# 🚀 Live Demo
 
-- Node.js
+🌐 Portfolio
+
+https://tetiana-a.github.io/aiAutomationDev/
+
+---
+
+# ✨ Features
+
+- 💰 AI Financial Assistant
+- 📊 Spending Decision Analysis
+- 🧠 Financial DNA Profile
+- 🤖 OpenAI-powered Recommendations
+- 💬 Telegram AI Chatbot
+- 📈 Personalized Financial Insights
+- 🗃 PostgreSQL Database
+- ⚡ Fast TypeScript Backend
+- 🔐 Secure User Profiles
+
+---
+
+# 🏗 Architecture
+
+```text
+                 Telegram User
+                       │
+                       ▼
+               Telegram Bot API
+                       │
+                       ▼
+               WealthMirror API
+                       │
+            ┌──────────┴───────────┐
+            ▼                      ▼
+      OpenAI GPT            PostgreSQL
+            │                   Prisma
+            ▼
+ Financial Analysis Engine
+            │
+            ▼
+ Personalized Recommendation
+            │
+            ▼
+      Telegram Response
+```
+
+---
+
+# 🛠 Tech Stack
+
 - TypeScript
-- Telegraf
-- PostgreSQL / Supabase
-- Prisma
+- Node.js
 - OpenAI API
-- Express
+- Telegram Bot API
+- Prisma ORM
+- PostgreSQL
+- REST API
+- AI Agents
 
-## Local setup
+---
 
-```bash
-npm install
-cp .env.example .env
-npx prisma generate
-npx prisma migrate dev --name init
-npm run dev
+# 💼 Business Value
+
+WealthMirror AI helps users make more informed financial decisions through AI-driven analysis and personalized recommendations.
+
+Typical use cases:
+
+- Personal Finance Assistant
+- Spending Analysis
+- Financial Coaching
+- AI Decision Support
+- Budget Planning
+- Money Management
+
+---
+
+# 📂 Project Structure
+
+```text
+src/
+prisma/
+package.json
+schema.prisma
+README.md
 ```
 
-## Render build command
+---
 
-```bash
-npm install && npm run prisma:generate && npm run build
+# ⚙️ Workflow
+
+```text
+Telegram Message
+        │
+        ▼
+Bot API
+        │
+        ▼
+OpenAI Analysis
+        │
+        ▼
+Financial Decision Engine
+        │
+        ▼
+Recommendation
+        │
+        ▼
+Telegram Reply
 ```
 
-## Render start command
+---
 
-```bash
-npm run prisma:deploy && npm run start
-```
+# 📸 Screenshots
 
-## Render env vars
+Screenshots and workflow previews will be added soon.
 
-```env
-NODE_ENV=production
-PORT=10000
-TELEGRAM_BOT_TOKEN=YOUR_TELEGRAM_BOT_TOKEN
-OPENAI_API_KEY=YOUR_OPENAI_API_KEY
-DATABASE_URL=YOUR_SUPABASE_POOLED_URL
-DIRECT_URL=YOUR_SUPABASE_DIRECT_URL
-APP_BASE_URL=https://YOUR-RENDER-SERVICE.onrender.com
-WEBHOOK_SECRET=YOUR_LONG_RANDOM_SECRET
-```
+---
+
+# 👩‍💻 Author
+
+## Tetiana Kotolup
+
+AI Automation Engineer
+
+### Specializations
+
+- AI Agents
+- OpenAI API
+- Telegram Bots
+- PostgreSQL
+- Prisma
+- TypeScript
+- Workflow Automation
+- Full-Stack AI Systems
+
+---
+
+# 🌐 Portfolio
+
+https://tetiana-a.github.io/aiAutomationDev/
+
+---
+
+# 💼 LinkedIn
+
+https://linkedin.com/in/tetiana-kotolup
+
+---
+
+# 💻 GitHub
+
+https://github.com/tetiana-a
+
+---
+
+# ⭐ Open to Opportunities
+
+Currently available for:
+
+- AI Automation Engineer
+- AI Engineer
+- AI Solutions Engineer
+- LLM Engineer
+- Backend AI Developer
+
+---
+
+# 📄 License
+
+MIT
